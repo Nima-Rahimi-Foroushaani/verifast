@@ -1854,6 +1854,7 @@ module VerifyExpr(VerifyProgramArgs: VERIFY_PROGRAM_ARGS) = struct
     let Some env' = zip ys ts in
     let _ = 
       match language, dialect, try_assoc "this" ps with
+      (*** TODO @Nima: For now, we just ignore this check for Rust. It needs a review later *)
       | Java, _, Some ObjType _
       | CLang, Some Cxx, Some _ ->
         let this_term = List.assoc "this" env' in
