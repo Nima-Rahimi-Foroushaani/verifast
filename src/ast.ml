@@ -547,6 +547,7 @@ and
 and
   dialect = (* ?dialect *)
     | Cxx
+    | Rust
 and
   method_binding = (* ?method_binding *)
     Static
