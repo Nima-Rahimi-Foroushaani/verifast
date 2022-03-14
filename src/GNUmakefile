@@ -270,8 +270,10 @@ include cxx_frontend/Makefile
 clean::
 	cd java_frontend; make clean; cd ..
 
-# Rust Frontend component
-include rust_frontend/Makefile
+# Rust frontend component
+RUST_FE_DIR = rust_frontend
+export RUST_FE_DIR
+include $(RUST_FE_DIR)/Makefile
 
 #------------------------------- Shorthands ---------------------------------#
 
@@ -297,7 +299,7 @@ STDLIB_FILES = \
 	../bin/crt.vfmanifest \
 	$(STDLIB_FILES_GEN)
 
-TOOLS_EXCEPT_VFIDE = ../bin/mysh$(DOTEXE) ../bin/verifast$(DOTEXE) \
+TOOLS_EXCEPT_VFIDE = ../bin/mysh$(DOTEXE) build-rust-frontend ../bin/verifast$(DOTEXE) \
         ../bin/main_class$(DOTEXE) ../bin/java_card_applet$(DOTEXE) \
         ../bin/dlsymtool$(DOTEXE) ../bin/vfstrip$(DOTEXE) ../bin/explorer$(DOTEXE)
 
@@ -320,7 +322,7 @@ build-cxx-ast-exporter: ../bin/vf-cxx-ast-exporter$(DOTEXE)
 
 distclean:: clean
 
-INCLUDES = -I $(INCLUDE_OS_DIR) -I java_frontend -I shape_analysis -I cxx_frontend
+INCLUDES = -I $(INCLUDE_OS_DIR) -I java_frontend -I shape_analysis -I cxx_frontend -I $(RUST_FE_DIR)
 
 #------------------------------- Build normal case --------------------------#
 
@@ -454,7 +456,7 @@ endif
 	  $(LABLGTK_FLAGS) $(GTKSOURCEVIEW_LFLAGS) \
 	  $(INCLUDES) Perf.cmxa proverapi.cmx dynlink.cmxa \
 	  util.cmx ast.cmx stats.cmx lexer.cmx \
-	  parser.cmx ${JAVA_FE_INCLS} $(CXX_FE_DEPS) verifast0.cmx verifast1.cmx assertions.cmx \
+	  parser.cmx ${JAVA_FE_INCLS} $(CXX_FE_DEPS) $(RUST_FE_OBJS) verifast0.cmx verifast1.cmx assertions.cmx \
 	  verify_expr.cmx verifast.cmx combineprovers.cmx \
           simplex.cmx redux.cmx verifastPluginRedux.cmx \
           smtlib.cmx smtlibprover.cmx verifastPluginCvc4.cmx verifastPluginExternalZ3.cmx verifastPluginReduxSmtlib.cmx \
@@ -478,7 +480,7 @@ vfide: ../bin/vfide$(DOTEXE) $(STDLIB)
 	$(COMPILE) $(OCAMLOPT_LINKFLAGS) $(CAPNP_LINK_FLAGS) -warn-error F -o ../bin/verifast$(DOTEXE) \
 	$(INCLUDES) Perf.cmxa proverapi.cmx \
 	  util.cmx ast.cmx stats.cmx lexer.cmx parser.cmx \
-	  ${JAVA_FE_INCLS} $(CXX_FE_DEPS) verifast0.cmx verifast1.cmx assertions.cmx \
+	  ${JAVA_FE_INCLS} $(CXX_FE_DEPS) $(RUST_FE_OBJS) verifast0.cmx verifast1.cmx assertions.cmx \
 	  verify_expr.cmx verifast.cmx simplex.cmx redux.cmx combineprovers.cmx \
           smtlib.cmx smtlibprover.cmx verifastPluginCvc4.cmx verifastPluginExternalZ3.cmx verifastPluginReduxSmtlib.cmx \
           $(Z3ARGS_EARLY) \
@@ -538,7 +540,7 @@ clean::
 	$(COMPILE) $(OCAMLOPT_LINKFLAGS) $(CAPNP_LINK_FLAGS) -warn-error F -o ../bin/explorer$(DOTEXE) \
 	$(INCLUDES) Perf.cmxa proverapi.cmx \
 	  util.cmx ast.cmx stats.cmx lexer.cmx parser.cmx \
-	  ${JAVA_FE_INCLS} $(CXX_FE_DEPS) verifast0.cmx verifast1.cmx assertions.cmx \
+	  ${JAVA_FE_INCLS} $(CXX_FE_DEPS) $(RUST_FE_OBJS) verifast0.cmx verifast1.cmx assertions.cmx \
 	  verify_expr.cmx verifast.cmx simplex.cmx redux.cmx combineprovers.cmx \
           smtlib.cmx smtlibprover.cmx verifastPluginCvc4.cmx verifastPluginExternalZ3.cmx verifastPluginReduxSmtlib.cmx \
           $(Z3ARGS_EARLY) \
