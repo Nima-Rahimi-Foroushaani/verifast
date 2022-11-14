@@ -461,7 +461,7 @@ endif
 	  $(LABLGTK_FLAGS) $(GTKSOURCEVIEW_LFLAGS) \
 	  $(INCLUDES) Perf.cmxa proverapi.cmx dynlink.cmxa \
 	  util.cmx ast.cmx stats.cmx lexer.cmx \
-	  parser.cmx ${JAVA_FE_INCLS} $(CXX_FE_DEPS) $(RUST_FE_OBJS) verifast0.cmx verifast1.cmx assertions.cmx \
+	  parser.cmx ${JAVA_FE_INCLS} $(CXX_FE_DEPS) verifast0.cmx $(RUST_FE_OBJS) verifast1.cmx assertions.cmx \
 	  verify_expr.cmx verifast.cmx combineprovers.cmx \
           simplex.cmx redux.cmx verifastPluginRedux.cmx \
           smtlib.cmx smtlibprover.cmx verifastPluginCvc4.cmx verifastPluginExternalZ3.cmx verifastPluginReduxSmtlib.cmx \
@@ -485,7 +485,7 @@ vfide: ../bin/vfide$(DOTEXE) $(STDLIB)
 	$(COMPILE) $(OCAMLOPT_LINKFLAGS) $(CAPNP_LINK_FLAGS) -warn-error F -pp ${CAMLP4O} -o ../bin/verifast$(DOTEXE) \
 	$(INCLUDES) Perf.cmxa proverapi.cmx \
 	  util.cmx ast.cmx stats.cmx lexer.cmx parser.cmx \
-	  ${JAVA_FE_INCLS} $(CXX_FE_DEPS) $(RUST_FE_OBJS) verifast0.cmx verifast1.cmx assertions.cmx \
+	  ${JAVA_FE_INCLS} $(CXX_FE_DEPS) verifast0.cmx $(RUST_FE_OBJS) verifast1.cmx assertions.cmx \
 	  verify_expr.cmx verifast.cmx simplex.cmx redux.cmx combineprovers.cmx \
           smtlib.cmx smtlibprover.cmx verifastPluginCvc4.cmx verifastPluginExternalZ3.cmx verifastPluginReduxSmtlib.cmx \
           $(Z3ARGS_EARLY) \
@@ -545,7 +545,7 @@ clean::
 	$(COMPILE) $(OCAMLOPT_LINKFLAGS) $(CAPNP_LINK_FLAGS) -warn-error F -pp ${CAMLP4O} -o ../bin/explorer$(DOTEXE) \
 	$(INCLUDES) Perf.cmxa proverapi.cmx \
 	  util.cmx ast.cmx stats.cmx lexer.cmx parser.cmx \
-	  ${JAVA_FE_INCLS} $(CXX_FE_DEPS) $(RUST_FE_OBJS) verifast0.cmx verifast1.cmx assertions.cmx \
+	  ${JAVA_FE_INCLS} $(CXX_FE_DEPS) verifast0.cmx $(RUST_FE_OBJS) verifast1.cmx assertions.cmx \
 	  verify_expr.cmx verifast.cmx simplex.cmx redux.cmx combineprovers.cmx \
           smtlib.cmx smtlibprover.cmx verifastPluginCvc4.cmx verifastPluginExternalZ3.cmx verifastPluginReduxSmtlib.cmx \
           $(Z3ARGS_EARLY) \
