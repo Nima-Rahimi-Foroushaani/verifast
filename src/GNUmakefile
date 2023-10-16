@@ -478,7 +478,7 @@ vfide: ../bin/vfide$(DOTEXE) $(STDLIB)
 ../bin/verifast$(DOTEXE): vfconsole.cmx $(VERIFAST_PLUGINS:%=verifastPlugin%.cmx) $(Z3DEPS)
 	@echo "  OCAMLOPT " $@
 	$(COMPILE) $(OCAMLOPT_LINKFLAGS) $(CAPNP_LINK_FLAGS) -warn-error F -o ../bin/verifast$(DOTEXE) \
-	$(INCLUDES) Perf.cmxa proverapi.cmx \
+	$(INCLUDES) vfconfig.cmx Perf.cmxa proverapi.cmx \
 	  util.cmx ast.cmx stats.cmx lexer.cmx parser.cmx \
 	  ${JAVA_FE_INCLS} $(CXX_FE_DEPS) verifast0.cmx $(RUST_FE_OBJS) verifast1.cmx assertions.cmx \
 	  verify_expr.cmx verifast.cmx simplex.cmx redux.cmx combineprovers.cmx \
