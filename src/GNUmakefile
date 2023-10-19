@@ -454,7 +454,7 @@ ifndef WITHOUT_GTKSOURCEVIEW
 endif
 	$(SET_LDD); $(COMPILE) $(OCAMLOPT_LINKFLAGS) $(CAPNP_LINK_FLAGS) -warn-error F -o ../bin/vfide$(DOTEXE)	\
 	  $(LABLGTK_FLAGS) $(GTKSOURCEVIEW_LFLAGS) \
-	  $(INCLUDES) Perf.cmxa proverapi.cmx dynlink.cmxa \
+	  $(INCLUDES) Perf.cmxa vfconfig.cmx proverapi.cmx dynlink.cmxa \
 	  util.cmx ast.cmx ocaml_expr.cmx ocaml_expr_of_ast.cmx ocaml_expr_formatter.cmx stats.cmx lexer.cmx \
 	  parser.cmx ${JAVA_FE_INCLS} $(CXX_FE_DEPS) verifast0.cmx $(RUST_FE_OBJS) verifast1.cmx assertions.cmx \
 	  verify_expr.cmx verifast.cmx combineprovers.cmx \
@@ -463,7 +463,7 @@ endif
           $(Z3ARGS_EARLY) \
 	  shape_analysis/shape_analysis_backend.cmx \
 	  shape_analysis/changelog.cmx shape_analysis/shape_analysis_frontend.cmx \
-	  $(Z3ARGS) branchleft_png.cmx branchright_png.cmx vfconfig.cmx vfide.cmx
+	  $(Z3ARGS) branchleft_png.cmx branchright_png.cmx vfide.cmx
 ifeq ($(OS), Darwin)
 	DYLD_LIBRARY_PATH=../lib DYLD_PRINT_LIBRARIES=1 ../bin/vfide -verify_and_quit ../examples/busywaiting/ioliveness/echo_live_mt.c > vfide-libraries.log 2>&1
 	! grep /usr/local vfide-libraries.log
