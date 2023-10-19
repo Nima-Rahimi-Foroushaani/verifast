@@ -187,9 +187,11 @@ OCAMLDEP     = $(firstword $(wildcard ${OCAMLBIN}/ocamldep.opt ${OCAMLBIN}/ocaml
 # Do we build with "-I ./linux" or "-I ./win":
 ifeq ($(OS), Windows_NT)
   INCLUDE_OS_DIR = win
+  OS_OBJECTS = SetErrorMode.cmx
 else
 # Also for mac.
   INCLUDE_OS_DIR = linux
+  OS_OBJECTS =
 endif
 
 # Number of CPUs
@@ -478,7 +480,7 @@ vfide: ../bin/vfide$(DOTEXE) $(STDLIB)
 ../bin/verifast$(DOTEXE): vfconsole.cmx $(VERIFAST_PLUGINS:%=verifastPlugin%.cmx) $(Z3DEPS)
 	@echo "  OCAMLOPT " $@
 	$(COMPILE) $(OCAMLOPT_LINKFLAGS) $(CAPNP_LINK_FLAGS) -warn-error F -o ../bin/verifast$(DOTEXE) \
-	$(INCLUDES) vfconfig.cmx Perf.cmxa proverapi.cmx \
+	$(INCLUDES) vfconfig.cmx Perf.cmxa $(OS_OBJECTS) proverapi.cmx \
 	  util.cmx ast.cmx stats.cmx lexer.cmx parser.cmx \
 	  ${JAVA_FE_INCLS} $(CXX_FE_DEPS) verifast0.cmx $(RUST_FE_OBJS) verifast1.cmx assertions.cmx \
 	  verify_expr.cmx verifast.cmx simplex.cmx redux.cmx combineprovers.cmx \
