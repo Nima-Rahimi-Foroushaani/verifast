@@ -670,6 +670,7 @@ cd tests
     cd purely_unsafe
       verifast -c scalars.rs
       verifast -c alloc.rs
+      verifast -c reverse.rs
     cd ..
   cd ..
 end_parallel
