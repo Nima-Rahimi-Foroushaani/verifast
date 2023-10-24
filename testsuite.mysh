@@ -672,6 +672,7 @@ cd tests
       verifast -c alloc.rs
       verifast -c reverse.rs
       verifast -c account.rs
+      verifast -c deque.rs
     cd ..
   cd ..
 end_parallel
