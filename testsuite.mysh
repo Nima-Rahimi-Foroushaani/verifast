@@ -671,6 +671,7 @@ cd tests
       verifast -c scalars.rs
       verifast -c alloc.rs
       verifast -c reverse.rs
+      verifast -c account.rs
     cd ..
   cd ..
 end_parallel
