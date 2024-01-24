@@ -82,24 +82,33 @@ pred Deque_own(t: thread_id_t, sentinel: *Node; size: i32) =
 pred Deque(deque: *Deque; elems: list<i32>) =
     (*deque).sentinel |-> ?sentinel &*& (*deque).size |-> ?size &*& Deque_(sentinel, elems) &*& size == length(elems);
 
-pred Deque_share(k: lifetime_t, t: thread_id_t, l: *Deque) = true; //Todo: frac borrow
+pred_ctor Deque_frac_borrow_content(l: *Deque, q: real) ()= [q](*l).sentinel |-> ?sentinel &*& [q](*l).size |-> ?size;
+
+fix deque_phi(l: *Deque, q: real) -> pred() {
+    Deque_frac_borrow_content(l, q)
+}
+pred Deque_share(k: lifetime_t, t: thread_id_t, l: *Deque) = frac_borrow(k, (deque_phi)(l));
 
 // Proof obligations
 lem Deque_share_mono(k: lifetime_t, k1: lifetime_t, t: thread_id_t, l: *Deque)
     req lifetime_inclusion(k1, k) == true &*& [_]Deque_share(k, t, l);
     ens [_]Deque_share(k1, t, l);
 {
-    close Deque_share(k1, t, l);
-    leak Deque_share(k1, t, l);
+    open Deque_share(k, t, l);
+    frac_borrow_mono(k, k1, (deque_phi)(l));
+    assert [?q]frac_borrow(k1, _);
+    close [q]Deque_share(k1, t, l);
 }
 
 lem Deque_share_full(k: lifetime_t, t: thread_id_t, l: *Deque)
     req full_borrow(k, Deque_full_borrow_content(t, l)) &*& [?q]lifetime_token(k);
     ens [_]Deque_share(k, t, l) &*& [q]lifetime_token(k);
 {
-    close Deque_share(k, t, l);
-    leak Deque_share(k, t, l);
-    leak full_borrow(_, _);
+    produce_lem_ptr_chunk implies(Deque_full_borrow_content(t, l), ((deque_phi)(l))(1))() {
+        open Deque_full_borrow_content(t, l)();
+        close deque_phi(l, 1);
+    }
+    full_borrow_into_frac(k, (deque_phi)(l));
 }
 @*/
 

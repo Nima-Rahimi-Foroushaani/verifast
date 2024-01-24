@@ -26,6 +26,9 @@ let rec parse_type = function%parser
 | [ (l, Ident "u128") ] -> ManifestTypeExpr (l, Int (Unsigned, FixedWidthRank 4))
 | [ (l, Ident "usize") ] -> ManifestTypeExpr (l, Int (Unsigned, PtrRank))
 | [ (l, Ident "bool") ] -> ManifestTypeExpr (l, Bool)
+| [ (l, Ident "f32") ] -> ManifestTypeExpr (l, Float)
+| [ (l, Ident "f64") ] -> ManifestTypeExpr (l, Double)
+| [ (l, Ident "real") ] -> ManifestTypeExpr (l, RealType)
 | [ (l, Ident x); [%let x = parse_type_path_rest x];
     [%let t = function%parser
       [ (_, Kwd "<"); [%let targs = rep_comma parse_type]; (_, Kwd ">") ] -> ConstructedTypeExpr (l, x, targs)
@@ -150,19 +153,27 @@ and parse_prefix_expr = function%parser
 | [ parse_suffix_expr as e ] -> e
 and parse_suffix_expr = function%parser
   [ parse_primary_expr as e; [%let e = parse_suffix e ] ] -> e
-and parse_suffix e = function%parser
-  [ (l, Kwd "."); (_, Ident f); [%let e = parse_suffix (Select (l, e, f)) ] ] -> e
-| [ (l, Kwd "("); [%let args0 = rep_comma parse_pat ]; (_, Kwd ")");
-    [%let (indices, args) = function%parser
-      [ (_, Kwd "("); [%let args = rep_comma parse_pat]; (_, Kwd ")") ] -> (args0, args)
-    | [ ] -> ([], args0)
-    ]
-  ] ->
-  begin match e with
-    Var (_, x) -> CallExpr (l, x, [], indices, args, Static)
-  | _ -> raise (ParseException (l, "Cannot call this expression form"))
+and parse_suffix e =
+  match e with
+  | CallExpr(_, "#(e)", [], [], [LitPat(e)], Static) -> begin
+    function%parser
+      [ (l, Kwd "("); [%let args = rep_comma parse_expr]; (_, Kwd ")") ] -> ExprCallExpr(l, e, args)
+    | [[%let e = parse_suffix e]] -> e
   end
-| [] -> e
+  | _ ->
+    function%parser
+    [ (l, Kwd "."); (_, Ident f); [%let e = parse_suffix (Select (l, e, f)) ] ] -> e
+  | [ (l, Kwd "("); [%let args0 = rep_comma parse_pat ]; (_, Kwd ")");
+      [%let (indices, args) = function%parser
+        [ (_, Kwd "("); [%let args = rep_comma parse_pat]; (_, Kwd ")") ] -> (args0, args)
+      | [ ] -> ([], args0)
+      ]
+    ] ->
+    begin match e with
+      Var (_, x) -> CallExpr (l, x, [], indices, args, Static)
+    | _ -> raise (ParseException (l, "Cannot call this expression form"))
+    end
+  | [] -> e
 and parse_primary_expr = function%parser
   [ (l, Ident x); [%let e = parse_path_rest l x] ] -> e
 | [ (l, Kwd "self") ] -> Var (l, "self")
@@ -181,7 +192,7 @@ and parse_primary_expr = function%parser
     (_, Kwd "{");
     parse_match_expr_rest as arms
   ] -> SwitchExpr (l, scrutinee, arms, None)
-| [ (_, Kwd "("); parse_expr as e; (_, Kwd ")") ] -> e
+| [ (l, Kwd "("); parse_expr as e; (_, Kwd ")") ] -> CallExpr(l, "#(e)", [], [], [LitPat(e)], Static)
 | [ (l, Kwd "["); [%let pats = rep_comma parse_pat]; (_, Kwd "]") ] -> CallExpr (l, "#list", [], [], pats, Static)
 | [ (l, Kwd "typeid"); (_, Kwd "("); parse_type as t; (_, Kwd ")") ] -> Typeid (l, TypeExpr t)
 and parse_match_arm = function%parser

@@ -117,4 +117,32 @@ lemma void open_nonatomic_borrow(lifetime_t k, thread_id_t t, mask_t m, real q);
 lemma void close_nonatomic_borrow();
     requires close_nonatomic_borrow_token(?P, ?q, ?k, ?t, ?m) &*& P();
     ensures [q]lifetime_token(k) &*& partial_thread_token(t, m);
+
+// Fractured borrows
+predicate frac_borrow(lifetime_t k, fixpoint(real, predicate()));
+lemma void full_borrow_into_frac(lifetime_t k, fixpoint(real, predicate()) phi);
+    requires full_borrow(k, ?P) &*& [_]is_implies(?f, P, phi(1)) &*& [_]is_implies(?f1, phi(1), P);
+    ensures [_]frac_borrow(k, phi);
+
+lemma void frac_borrow_mono(lifetime_t k, lifetime_t k1, fixpoint(real q, predicate()) phi);
+    requires [_]frac_borrow(k, phi) &*& lifetime_inclusion(k1, k) == true;
+    ensures [_]frac_borrow(k1, phi);
+
+predicate_ctor sep_conj(predicate() P, predicate() P1)() = P() &*& P1();
+predicate_ctor idp(predicate() P)() = P();
+
+typedef lemma void phi_precise(fixpoint(real, predicate()) phi, real q, real q1)();
+    requires is_implies(?f, phi(q + q1), sep_conj(phi(q), phi(q1))) &*& is_implies(?f1, sep_conj(phi(q), phi(q1)), phi(q + q1));
+    ensures is_implies(f, phi(q + q1), sep_conj(phi(q), phi(q1))) &*& is_implies(f1, sep_conj(phi(q), phi(q1)), phi(q + q1));
+
+predicate close_frac_borrow_token(real q_phi, fixpoint(real, predicate()) phi, real q_lft, lifetime_t k);
+
+lemma void open_frac_borrow(lifetime_t k, fixpoint(real, predicate()) phi, real q_lft);
+    requires [_]frac_borrow(k, phi) &*& is_phi_precise(?f, phi, _, _) &*& [q_lft]lifetime_token(k);
+    ensures exists(?q_phi) &*& idp(phi(q_phi))() &*& close_frac_borrow_token(q_phi, phi, q_lft, k);
+
+lemma void close_frac_borrow(real q_phi, fixpoint(real, predicate()) phi);
+    requires idp(phi(q_phi))() &*& close_frac_borrow_token(q_phi, phi, ?q_lft, ?k);
+    ensures [q_lft]lifetime_token(k);
+
 #endif
