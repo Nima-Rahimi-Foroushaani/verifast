@@ -5,22 +5,27 @@
 //@ #include "lifetime_logic.gh"
 /*@
 
+predicate atomic_context();
 predicate atomic_mask(mask_t mask);
 predicate atomic_space(mask_t mask, predicate() inv;);
+/* This would be the existentially quantified `R` in the derived rule on Ralf Jung's thesis in the middle of page 67.
+See https://research.ralfj.de/phd/thesis-screen.pdf */
 predicate close_atomic_space_token(mask_t spaceMask, predicate() inv);
 
 lemma void create_atomic_space(mask_t mask, predicate() inv);
     requires !mask_is_empty(mask) &*& inv();
     ensures atomic_space(mask, inv);
 
+/* This lemma is a mask changing view-shift that opens atomic_space(spaceMask, inv). Hence, It can just be used in the context
+of proving a Hoare triple for an atomic `e` (See Iris HOARE-VS-ATOMIC). We need to have `atomic_context()` as an evidence for that. */
 lemma void open_atomic_space(mask_t spaceMask, predicate() inv);
-    requires [?f]atomic_space(spaceMask, inv) &*& atomic_mask(?currentMask) &*& mask_le(spaceMask, currentMask) == true;
-    ensures [f]atomic_space(spaceMask, inv) &*& atomic_mask(mask_diff(currentMask, spaceMask))
+    requires atomic_context() &*& [?f]atomic_space(spaceMask, inv) &*& atomic_mask(?currentMask) &*& mask_le(spaceMask, currentMask) == true;
+    ensures atomic_context() &*& [f]atomic_space(spaceMask, inv) &*& atomic_mask(mask_diff(currentMask, spaceMask))
             &*& close_atomic_space_token(spaceMask, inv) &*& inv();
 
 lemma void close_atomic_space(mask_t spaceMask);
-    requires atomic_mask(?currentMask) &*& close_atomic_space_token(spaceMask, ?inv) &*& inv();
-    ensures atomic_mask(mask_union(currentMask, spaceMask));
+    requires atomic_context() &*& atomic_mask(?currentMask) &*& close_atomic_space_token(spaceMask, ?inv) &*& inv();
+    ensures atomic_context() &*& atomic_mask(mask_union(currentMask, spaceMask));
 
 predicate_ctor simple_share(fixpoint(thread_id_t, void *, predicate(;)) frac_borrow_content)(lifetime_t k, thread_id_t t, void *l) =
     frac_borrow(k, frac_borrow_content(t, l));
