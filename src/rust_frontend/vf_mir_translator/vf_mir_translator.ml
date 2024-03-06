@@ -2604,6 +2604,15 @@ module Make (Args : VF_MIR_TRANSLATOR_ARGS) = struct
     let lit_pat_b n = LitPat (Var (contract_loc, n)) in
     (* Todo @Nima: Move RustBelt token, etc. constructors like the following to the RustBelt module so
        The hard-coded names will be in the same place and the code will be reusable *)
+    let atomic_mask_token =
+      CallExpr
+        ( contract_loc,
+          "atomic_mask",
+          [] (*type arguments*),
+          [] (*indices*),
+          [ lit_pat_b "MaskTop" ] (*arguments*),
+          Static )
+    in
     let nonatomic_token_b pat =
       CallExpr
         ( contract_loc,
@@ -2616,6 +2625,10 @@ module Make (Args : VF_MIR_TRANSLATOR_ARGS) = struct
     let thread_id_name = "_t" in
     let pre_na_token = nonatomic_token_b (bind_pat_b thread_id_name) in
     let post_na_token = nonatomic_token_b (lit_pat_b thread_id_name) in
+    let pre_mask_tokens = Sep (contract_loc, atomic_mask_token, pre_na_token) in
+    let post_mask_tokens =
+      Sep (contract_loc, atomic_mask_token, post_na_token)
+    in
     let lft_token_b pat_b n =
       let coef_n = "_q_" ^ n in
       CoefAsn
@@ -2695,8 +2708,8 @@ module Make (Args : VF_MIR_TRANSLATOR_ARGS) = struct
     in
     let pre_asn =
       match pre_asn with
-      | None -> pre_na_token
-      | Some pre_asn -> Sep (contract_loc, pre_na_token, pre_asn)
+      | None -> pre_mask_tokens
+      | Some pre_asn -> Sep (contract_loc, pre_mask_tokens, pre_asn)
     in
     let* ret_ty_asn =
       gen_local_ty_asn
@@ -2713,7 +2726,7 @@ module Make (Args : VF_MIR_TRANSLATOR_ARGS) = struct
         (Some ret_ty_asn)
       (*might be just True*)
     in
-    let post_asn = Sep (contract_loc, post_na_token, post_asn) in
+    let post_asn = Sep (contract_loc, post_mask_tokens, post_asn) in
     Ok (pre_asn, post_asn)
 
   let gen_drop_contract adt_defs self_ty limpl =

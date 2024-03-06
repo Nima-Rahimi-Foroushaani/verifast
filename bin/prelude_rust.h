@@ -20,8 +20,8 @@ unit as their return type.
 */
 
 typedef struct std_tuple_0_ main_full/*@(int mainModule)@*/(int argc, char **argv);
-    //@ requires thread_token(?_t) &*& module(mainModule, true) &*& 0 <= argc &*& [_]argv(argv, argc, ?arguments);
-    //@ ensures thread_token(_t) &*& junk();
+    //@ requires atomic_mask(MaskTop) &*& thread_token(?_t) &*& module(mainModule, true) &*& 0 <= argc &*& [_]argv(argv, argc, ?arguments);
+    //@ ensures atomic_mask(MaskTop) &*& thread_token(_t) &*& junk();
 
 // Specify custom_main_spec on your main function to override the main_full default
 typedef int custom_main_spec(int argc, char **argv);
