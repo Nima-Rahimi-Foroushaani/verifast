@@ -205,6 +205,33 @@ lem MutexU32_send(t: thread_id_t, t1: thread_id_t)
     close MutexU32_own(t1, inner, data);
 }
 
+/*lem full_bor_implies_lift(k: lifetime_t, P: pred(), Q: pred());
+    req is_implies(?f, P, Q) &*& is_implies(?f1, Q, P);
+    ens is_implies(f, P, Q) &*& is_implies(f1, Q, P) &*& is_implies(?g, full_borrow_(k, P), full_borrow_(k, Q)) &*& is_implies(?g1, full_borrow_(k, Q), full_borrow_(k, P));
+
+pred_ctor SysMutex_share_(l: *sys::locks::Mutex, P: pred())(;) = SysMutex_share(l, P);
+lem SysMutex_share_implies_lift(l: *sys::locks::Mutex, P: pred(), Q: pred());
+    req is_implies(?f, P, Q) &*& is_implies(?f1, Q, P);
+    ens is_implies(f, P, Q) &*& is_implies(f1, Q, P) &*& is_implies(?g, SysMutex_share_(l, P), SysMutex_share_(l, Q)) &*& is_implies(?g1, SysMutex_share_(l, Q), SysMutex_share_(l, P));
+
+
+lem MutexU32_fracbc_eq(k: lifetime_t, t: thread_id_t, t1: thread_id_t, l: *sys::locks::Mutex, MutexU32_frac_borrow_content(k, t, l), MutexU32_frac_borrow_content(k, t1, l));
+    req MutexU32_frac_borrow_content(k, t, l)();
+    ens MutexU32_frac_borrow_content(k, t1, l)();
+
+lem MutexU32_sync0(t: thread_id_t, t1: thread_id_t)
+    req MutexU32_share(?k, t, ?l);
+    ens MutexU32_share(k, t1, l);
+{
+    open MutexU32_share(k, t, l);
+    assert exists_np(?kfcc);
+    produce_lem_ptr_chunk(MutexU32_fracbc_tid_indep);
+    frac_borrow_implies(k, MutexU32_frac_borrow_content(kfcc, t, l), MutexU32_frac_borrow_content(kfcc, t1, l));
+    close MutexU32_share(k, t1, l);
+    leak is_implies(_, _, _);
+    leak is_implies(_, _, _);
+}*/
+
 lem MutexU32_sync(t: thread_id_t, t1: thread_id_t)
     req MutexU32_share(?k, t, ?l);
     ens MutexU32_share(k, t1, l);

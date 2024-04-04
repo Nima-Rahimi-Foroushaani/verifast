@@ -328,11 +328,25 @@ let rec parse_asn stream = parse_expr stream
 let parse_coef = function%parser
   [ (_, Kwd "["); parse_pat as pat; (_, Kwd "]") ] -> pat
 
-let parse_pure_spec_clause = function%parser
+let parse_functypeclause_args = function%parser
+| [ (_, Kwd "("); [%l 
+    args = rep_comma (function%parser 
+    | [ (l, Ident x) ] -> (l, x)
+    )
+    ]; 
+    (_, Kwd ")") 
+  ] -> args
+| [ ] -> []
+  let parse_pure_spec_clause = function%parser
   [ (_, Kwd "nonghost_callers_only") ] -> NonghostCallersOnlyClause
 | [ (l, Kwd "terminates"); (_, Kwd ";") ] -> TerminatesClause l
 | [ (_, Kwd "req"); parse_asn as p; (_, Kwd ";") ] -> RequiresClause p
 | [ (_, Kwd "ens"); parse_asn as p; (_, Kwd ";") ] -> EnsuresClause p
+| [ (_, Kwd ":"); (_, Ident ft);
+    [%l targs = function%parser
+        | [parse_type_args as targs] -> targs
+        | [ ] -> []
+    ]; parse_functypeclause_args as ftargs] -> FuncTypeClause (ft, targs, ftargs)
 
 let parse_spec_clause = function%parser
   [ [%let c = peek_in_ghost_range @@ function%parser
@@ -409,12 +423,29 @@ let rec parse_stmt = function%parser
 | [ (l, Kwd "assert"); parse_asn as p; (_, Kwd ";") ] -> Assert (l, p)
 | [ (l, Kwd "leak"); parse_asn as p; (_, Kwd ";") ] -> Leak (l, p)
 | [ (l, Kwd "produce_lem_ptr_chunk");
-    parse_produce_lemma_function_pointer_chunk_stmt_function_type_clause as ftclause;
-    [%let body = function%parser
-      [ (_, Kwd ";") ] -> None
+
+    [%l
+    (e, ftclause) = begin function%parser
+    | [ (_, Kwd "("); 
+        parse_expr as e; 
+        (_, Kwd ")");
+        [%l
+        ftclause = opt (function%parser 
+        | [ (_, Kwd ":"); 
+            parse_produce_lemma_function_pointer_chunk_stmt_function_type_clause as ftclause 
+          ] -> ftclause
+        )
+        ]
+      ] -> (Some e, ftclause)
+    | [ parse_produce_lemma_function_pointer_chunk_stmt_function_type_clause as ftclause ] -> (None, Some ftclause)
+    end
+    ];
+    [%l
+    body = function%parser
+    [ (_, Kwd ";") ] -> None
     | [ parse_stmt as s ] -> Some s
     ]
-  ] -> ProduceLemmaFunctionPointerChunkStmt (l, None, Some ftclause, body)
+  ] -> ProduceLemmaFunctionPointerChunkStmt (l, e, ftclause, body)
 | [ (l, Kwd "produce_fn_ptr_chunk"); 
     [%let (li, ftn) = parse_simple_path];
     [%let targs = function%parser
