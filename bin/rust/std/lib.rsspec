@@ -36,6 +36,7 @@ mod mem {
 }
 
 mod ptr {
+    //@ fix is_null<T>(p: *mut T) -> bool { p == 0 }
 
     unsafe fn drop_in_place<T>(to_drop: *mut T);
     //@ req thread_token(?t) &*& (<T>.full_borrow_content(t, to_drop))();
@@ -71,6 +72,8 @@ mod ptr {
 mod alloc {
 
     struct Layout;
+    struct LayoutError;
+    //@ fix Layout::error_() -> LayoutError;
     //@ fix Layout::size_(layout: Layout) -> usize;
     //@ fix Layout::align_(layout: Layout) -> usize;
     //@ fix Layout::from_size_align_(size: usize, align: usize) -> Layout;
@@ -98,6 +101,13 @@ mod alloc {
         //@ req align == 1 || align == 2 || align == 4 || align == 8 || align == 16;
         //@ ens result == Layout::from_size_align_(size, align);
 
+        fn array<T>(n: usize) -> std::result::Result<Layout, LayoutError>;
+        //@ req thread_token(?t);
+        /*@ ens thread_token(t) &*& std::result::Result_own(t, result) &*& if (n * std::mem::size_of::<T>()) > isize::MAX {
+                result == std::result::Result::Err(Layout::error_()) } else {
+                result == std::result::Result::Ok(Layout::from_size_align_(n * std::mem::size_of_::<T>(), std::mem::align_of_::<T>()))
+            };
+        @*/
     }
     
     //@ pred alloc_block(ptr: *u8; layout: Layout);
@@ -204,14 +214,14 @@ mod result {
         Ok(T),
         Err(E),
     }
-    
+
     //@ pred Result_own<T, E>(t: thread_id_t, v: Result<T, E>);
     
     impl<T, E> Result<T, E> {
     
         fn unwrap(self: Result<T, E>) -> T;
         //@ req thread_token(?t) &*& Result_own::<T, E>(t, self);
-        //@ ens thread_token(t);
+        //@ ens thread_token(t) &*& match self { Result::Ok(v) => <T>.own(t, result) &*& result == v, Result::Err(e) => false };
     
     }
 
